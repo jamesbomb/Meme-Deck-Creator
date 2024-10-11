@@ -14,7 +14,8 @@ console = Console()
 
 class DraggableTextLabel(QLabel):
     """
-    QLabel subclass that allows vertical dragging of the text within its parent.
+    QLabel personalizzato che consente il trascinamento verticale all'interno del suo genitore.
+    Utilizzato sia per il testo che per le immagini sovrapposte.
     """
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -35,7 +36,7 @@ class DraggableTextLabel(QLabel):
             new_y = self.y() + event.position().y() - self.offset
             parent_height = self.parent().height()
             label_height = self.height()
-            padding = self.parent().parent().padding_value
+            padding = self.window().padding_value
 
             # Limita il movimento solo verticalmente
             new_y = max(padding, min(new_y, parent_height - label_height - padding))
@@ -54,9 +55,11 @@ class CardGenerator(QMainWindow):
         self.background_image = None
         self.phrases = []
         self.current_index = 0
+        self.images = []
         self.save_folder = ""
         self.current_font = "Arial"
         self.padding_value = 10
+        self.overlay_mode = "Text"
 
         self.init_ui()
         
@@ -279,6 +282,8 @@ class CardGenerator(QMainWindow):
                 elif file_path.endswith('.csv'):
                     reader = csv.reader(file)
                     self.phrases = [row[0].strip() for row in reader if row and row[0].strip()]
+            
+            self.phrases = [self.capitalize_first_letter(phrase) for phrase in self.phrases]
             self.current_index = 0
             console.print(f"[green]File di frasi caricato:[/green] {file_path}")
             console.print(f"[blue]Numero di frasi caricate:[/blue] {len(self.phrases)}")
@@ -289,7 +294,14 @@ class CardGenerator(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Errore", f"Errore durante il caricamento delle frasi: {e}")
             console.print(f"[red]Errore durante il caricamento delle frasi:[/red] {e}")
-
+            
+    def capitalize_first_letter(self, text):
+        # Rendi maiuscola la prima lettera
+        if text and text[0].isalpha():
+            return text[0].upper() + text[1:]
+        else:
+            return text
+        
     def reset_phrases(self):
         # Resetta le frasi attuali
         self.phrases = []
